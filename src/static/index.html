@@ -92,6 +92,30 @@
           </div>
         </div>
       </section>
+
+      <!-- Student To-Do / Assignment Tracker -->
+      <section id="todo-container">
+        <h3>📋 My Assignment Tracker</h3>
+        <div id="todo-email-gate">
+          <p class="todo-hint">Enter your student email to view and manage your assignments.</p>
+          <form id="todo-email-form" class="todo-email-form">
+            <input type="email" id="todo-student-email" placeholder="your-email@mergington.edu" required />
+            <button type="submit">Load My Tasks</button>
+          </form>
+        </div>
+        <div id="todo-content" class="hidden">
+          <div id="todo-student-label"></div>
+          <form id="todo-add-form" class="todo-add-form">
+            <input type="text" id="todo-title" placeholder="Assignment title..." required maxlength="200" />
+            <input type="date" id="todo-deadline" title="Deadline (optional)" />
+            <button type="submit">Add</button>
+          </form>
+          <ul id="todo-list">
+            <!-- Tasks rendered here -->
+          </ul>
+          <p id="todo-empty" class="hidden todo-empty">No assignments yet. Add one above!</p>
+        </div>
+      </section>
     </main>
 
     <footer>
