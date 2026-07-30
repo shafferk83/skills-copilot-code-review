@@ -612,7 +612,149 @@ footer {
   }
 }
 
-/* User controls in header */
+/* ─── Student To-Do / Assignment Tracker ─────────────────────────────────── */
+
+#todo-container {
+  margin-top: 20px;
+}
+
+.todo-hint {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.todo-email-form {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.todo-email-form input[type="email"] {
+  flex: 1;
+  min-width: 220px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.todo-student-label {
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.todo-switch-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--primary);
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.todo-switch-btn:hover {
+  background-color: var(--background);
+}
+
+.todo-add-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.todo-add-form input[type="text"] {
+  flex: 2;
+  min-width: 180px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.todo-add-form input[type="date"] {
+  flex: 1;
+  min-width: 130px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+#todo-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--surface);
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.todo-item.todo-completed {
+  background-color: var(--success-light);
+  border-color: #c8e6c9;
+}
+
+.todo-item.todo-completed .todo-title-text {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.todo-title-text {
+  flex: 1;
+  word-break: break-word;
+}
+
+.todo-deadline {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.todo-check-btn,
+.todo-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: inherit;
+}
+
+.todo-check-btn:hover,
+.todo-delete-btn:hover {
+  opacity: 0.7;
+}
+
+.todo-empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  padding: 12px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+}
+
+/* ─── End Assignment Tracker ──────────────────────────────────────────────── */
 #user-controls {
   position: absolute;
   top: 10px;
