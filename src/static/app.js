@@ -861,6 +861,325 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeRangeFilter,
   };
 
+  // ─── Student Assignment / To-Do Tracker ───────────────────────────────────
+
+  const todoEmailForm = document.getElementById("todo-email-form");
+  const todoStudentEmailInput = document.getElementById("todo-student-email");
+  const todoEmailGate = document.getElementById("todo-email-gate");
+  const todoContent = document.getElementById("todo-content");
+  const todoStudentLabel = document.getElementById("todo-student-label");
+  const todoAddForm = document.getElementById("todo-add-form");
+  const todoTitleInput = document.getElementById("todo-title");
+  const todoDeadlineInput = document.getElementById("todo-deadline");
+  const todoList = document.getElementById("todo-list");
+  const todoEmpty = document.getElementById("todo-empty");
+
+  let todoStudentEmail = "";
+  let todoTasks = [];
+
+  // Load tasks from the API for the current student email
+  async function fetchTasks() {
+    try {
+      const response = await fetch(
+        `/tasks?student_email=${encodeURIComponent(todoStudentEmail)}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch tasks");
+      todoTasks = await response.json();
+      renderTasks();
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  }
+
+  // Render the task list
+  function renderTasks() {
+    todoList.innerHTML = "";
+
+    if (todoTasks.length === 0) {
+      todoEmpty.classList.remove("hidden");
+      return;
+    }
+
+    todoEmpty.classList.add("hidden");
+
+    todoTasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.className = `todo-item${task.completed ? " todo-completed" : ""}`;
+      li.dataset.id = task.id;
+
+      const deadlineHtml = task.deadline
+        ? `<span class="todo-deadline">📅 Due: ${task.deadline}</span>`
+        : "";
+
+      li.innerHTML = `
+        <button class="todo-check-btn" title="${task.completed ? "Mark incomplete" : "Mark complete"}" aria-label="${task.completed ? "Mark incomplete" : "Mark complete"}">
+          ${task.completed ? "✅" : "⬜"}
+        </button>
+        <span class="todo-title-text">${escapeHtml(task.title)}</span>
+        ${deadlineHtml}
+        <button class="todo-delete-btn" title="Delete task" aria-label="Delete task">🗑️</button>
+      `;
+
+      li.querySelector(".todo-check-btn").addEventListener("click", () =>
+        toggleTask(task.id)
+      );
+      li.querySelector(".todo-delete-btn").addEventListener("click", () =>
+        deleteTask(task.id)
+      );
+
+      todoList.appendChild(li);
+    });
+  }
+
+  // Toggle task completion
+  async function toggleTask(taskId) {
+    try {
+      const response = await fetch(
+        `/tasks/${encodeURIComponent(taskId)}/complete?student_email=${encodeURIComponent(todoStudentEmail)}`,
+        { method: "PATCH" }
+      );
+      if (!response.ok) throw new Error("Failed to update task");
+      const updated = await response.json();
+      todoTasks = todoTasks.map((t) => (t.id === taskId ? updated : t));
+      renderTasks();
+    } catch (error) {
+      console.error("Error toggling task:", error);
+    }
+  }
+
+  // Delete a task
+  async function deleteTask(taskId) {
+    try {
+      const response = await fetch(
+        `/tasks/${encodeURIComponent(taskId)}?student_email=${encodeURIComponent(todoStudentEmail)}`,
+        { method: "DELETE" }
+      );
+      if (!response.ok) throw new Error("Failed to delete task");
+      todoTasks = todoTasks.filter((t) => t.id !== taskId);
+      renderTasks();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+    }
+  }
+
+  // Simple HTML escape to prevent XSS in task titles
+  function escapeHtml(text) {
+    const div = document.createElement("div");
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+  }
+
+  // Handle email gate form submission
+  todoEmailForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    todoStudentEmail = todoStudentEmailInput.value.trim();
+    if (!todoStudentEmail) return;
+
+    todoEmailGate.classList.add("hidden");
+    todoStudentLabel.innerHTML = `<p class="todo-student-label">Tasks for <strong>${escapeHtml(todoStudentEmail)}</strong> <button id="todo-switch-email" class="todo-switch-btn">Switch</button></p>`;
+    todoContent.classList.remove("hidden");
+
+    document.getElementById("todo-switch-email").addEventListener("click", () => {
+      todoStudentEmail = "";
+      todoTasks = [];
+      todoList.innerHTML = "";
+      todoStudentEmailInput.value = "";
+      todoContent.classList.add("hidden");
+      todoEmailGate.classList.remove("hidden");
+    });
+
+    await fetchTasks();
+  });
+
+  // Handle add-task form submission
+  todoAddForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const title = todoTitleInput.value.trim();
+    const deadline = todoDeadlineInput.value || null;
+    if (!title) return;
+
+    try {
+      const response = await fetch(
+        `/tasks?student_email=${encodeURIComponent(todoStudentEmail)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, deadline }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to create task");
+      const newTask = await response.json();
+      todoTasks.push(newTask);
+      renderTasks();
+      todoAddForm.reset();
+    } catch (error) {
+      console.error("Error creating task:", error);
+    }
+  });
+
+  // ─── End Assignment Tracker ────────────────────────────────────────────────
+  // ─── Timetable View ────────────────────────────────────────────────────────
+
+  const timetableContainer = document.getElementById("timetable-container");
+  const activitiesContainer = document.getElementById("activities-container");
+  const viewTabs = document.querySelectorAll(".view-tab");
+  const branchSelect = document.getElementById("branch-select");
+  const timetableBody = document.getElementById("timetable-body");
+
+  // Time bands used to group activities into rows
+  const TIME_BANDS = [
+    { key: "before-school", label: "Before School", range: "6:00 AM – 9:00 AM", maxEnd: "09:00" },
+    { key: "after-school",  label: "After School",  range: "3:00 PM – 6:30 PM", minStart: "14:00" },
+    { key: "weekend",       label: "Weekend",       range: "All Day", days: ["Saturday", "Sunday"] },
+  ];
+
+  const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  // Determine which time band(s) an activity belongs to
+  function getTimeBandsForActivity(activity) {
+    const schedDays = activity.schedule_details?.days ?? [];
+    const startTime = activity.schedule_details?.start_time ?? "";
+    const endTime   = activity.schedule_details?.end_time   ?? "";
+    const bands = new Set();
+
+    for (const band of TIME_BANDS) {
+      if (band.days) {
+        // Weekend band: activity must be on a weekend day
+        if (schedDays.some((d) => band.days.includes(d))) bands.add(band.key);
+      } else if (band.maxEnd) {
+        // Before-school: ends before 09:00
+        if (endTime && endTime <= band.maxEnd) bands.add(band.key);
+      } else if (band.minStart) {
+        // After-school: starts at 14:00 or later
+        if (startTime && startTime >= band.minStart) bands.add(band.key);
+      }
+    }
+
+    return bands;
+  }
+
+  // Format a 24h "HH:MM" time string to 12h AM/PM
+  function formatTime24to12(time24) {
+    if (!time24) return "";
+    const [h, m] = time24.split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+  }
+
+  // Fetch timetable data and render it
+  async function fetchAndRenderTimetable() {
+    timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-loading">Loading timetable…</td></tr>`;
+
+    const branch = branchSelect.value;
+    const query  = branch ? `?branch=${encodeURIComponent(branch)}` : "";
+
+    try {
+      const response = await fetch(`/activities/timetable${query}`);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const timetableData = await response.json();
+      renderTimetable(timetableData);
+    } catch (error) {
+      timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-loading">Failed to load timetable. Please try again.</td></tr>`;
+      console.error("Error fetching timetable:", error);
+    }
+  }
+
+  // Render the timetable table body from the API response
+  function renderTimetable(timetableData) {
+    timetableBody.innerHTML = "";
+
+    let hasAnyActivity = false;
+
+    for (const band of TIME_BANDS) {
+      const row = document.createElement("tr");
+
+      // Time label cell
+      const labelCell = document.createElement("td");
+      labelCell.className = "time-label";
+      labelCell.innerHTML = `${band.label}<span class="time-band">${band.range}</span>`;
+      row.appendChild(labelCell);
+
+      // Day cells
+      for (const day of DAYS) {
+        const cell = document.createElement("td");
+
+        // For weekend band, only Saturday and Sunday are relevant
+        if (band.days && !band.days.includes(day)) {
+          cell.className = "empty-cell";
+          cell.textContent = "–";
+          row.appendChild(cell);
+          continue;
+        }
+
+        const dayActivities = (timetableData[day] ?? []).filter((activity) => {
+          const actBands = getTimeBandsForActivity(activity);
+          return actBands.has(band.key);
+        });
+
+        if (dayActivities.length === 0) {
+          cell.className = "empty-cell";
+          cell.textContent = "–";
+        } else {
+          hasAnyActivity = true;
+          dayActivities.forEach((activity) => {
+            const entry = document.createElement("div");
+            const typeClass = getActivityType(activity.name, activity.description);
+            entry.className = `timetable-entry ${typeClass}`;
+
+            const startStr = formatTime24to12(activity.schedule_details?.start_time);
+            const endStr   = formatTime24to12(activity.schedule_details?.end_time);
+            const timeStr  = startStr && endStr ? `${startStr} – ${endStr}` : "";
+
+            entry.innerHTML = `
+              <span class="timetable-entry-name">${activity.name}</span>
+              ${timeStr ? `<span class="timetable-entry-time">${timeStr}</span>` : ""}
+            `;
+            cell.appendChild(entry);
+          });
+        }
+
+        row.appendChild(cell);
+      }
+
+      timetableBody.appendChild(row);
+    }
+
+    if (!hasAnyActivity) {
+      timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-empty">No activities found for the selected branch.</td></tr>`;
+    }
+  }
+
+  // Switch between Activities and Timetable views
+  function switchView(view) {
+    if (view === "timetable") {
+      activitiesContainer.classList.add("hidden");
+      timetableContainer.classList.remove("hidden");
+      fetchAndRenderTimetable();
+    } else {
+      timetableContainer.classList.add("hidden");
+      activitiesContainer.classList.remove("hidden");
+    }
+
+    viewTabs.forEach((tab) => {
+      if (tab.dataset.view === view) {
+        tab.classList.add("active");
+      } else {
+        tab.classList.remove("active");
+      }
+    });
+  }
+
+  // Event listeners for view tabs
+  viewTabs.forEach((tab) => {
+    tab.addEventListener("click", () => switchView(tab.dataset.view));
+  });
+
+  // Event listener for branch filter
+  branchSelect.addEventListener("change", fetchAndRenderTimetable);
+
+  // ─── End Timetable View ────────────────────────────────────────────────────
+
   // Initialize app
   checkAuthentication();
   initializeFilters();

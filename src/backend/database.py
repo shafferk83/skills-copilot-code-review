@@ -11,6 +11,8 @@ db = client['mergington_high']
 activities_collection = db['activities']
 teachers_collection = db['teachers']
 students_collection = db['students']
+internships_collection = db['internships']
+tasks_collection = db['tasks']
 
 # Methods
 
@@ -56,6 +58,10 @@ def init_database():
         for student in initial_students:
             students_collection.insert_one(
                 {"_id": student["email"], **student})
+    # Initialize internships if empty
+    if internships_collection.count_documents({}) == 0:
+        for internship in initial_internships:
+            internships_collection.insert_one(internship)
 
 
 # Initial database if empty
@@ -263,5 +269,85 @@ initial_students = [
         "name": "James Anderson",
         "grade": "12",
         "branch": "Mathematics"
+initial_internships = [
+    {
+        "company": "TechNova Solutions",
+        "role": "Software Engineering Intern",
+        "location": "San Francisco, CA (Remote)",
+        "branch": "Technology",
+        "prerequisites": "Python or Java basics, interest in software development",
+        "link": "https://technova.example.com/internships"
+    },
+    {
+        "company": "BioLife Labs",
+        "role": "Research Intern",
+        "location": "Boston, MA",
+        "branch": "Science",
+        "prerequisites": "Biology or Chemistry coursework, lab safety training",
+        "link": "https://biolabs.example.com/careers"
+    },
+    {
+        "company": "Meridian Media",
+        "role": "Graphic Design Intern",
+        "location": "New York, NY (Hybrid)",
+        "branch": "Arts",
+        "prerequisites": "Portfolio of artwork, familiarity with design tools",
+        "link": "https://meridianmedia.example.com/internships"
+    },
+    {
+        "company": "Summit Finance Group",
+        "role": "Finance & Analytics Intern",
+        "location": "Chicago, IL",
+        "branch": "Business",
+        "prerequisites": "Math coursework, interest in finance",
+        "link": "https://summitfinance.example.com/internships"
+    },
+    {
+        "company": "GreenEarth Initiative",
+        "role": "Environmental Science Intern",
+        "location": "Portland, OR (Remote)",
+        "branch": "Science",
+        "prerequisites": "Environmental science or biology coursework",
+        "link": "https://greenearth.example.com/internships"
+    },
+    {
+        "company": "CivicBridge",
+        "role": "Community Outreach Intern",
+        "location": "Washington, D.C.",
+        "branch": "Social Studies",
+        "prerequisites": "Strong communication skills, interest in public service",
+        "link": "https://civicbridge.example.com/internships"
+    },
+    {
+        "company": "PixelForge Games",
+        "role": "Game Development Intern",
+        "location": "Austin, TX (Hybrid)",
+        "branch": "Technology",
+        "prerequisites": "Programming basics, interest in game design",
+        "link": "https://pixelforge.example.com/internships"
+    },
+    {
+        "company": "Harmony Health",
+        "role": "Healthcare Administration Intern",
+        "location": "Houston, TX",
+        "branch": "Health",
+        "prerequisites": "Interest in healthcare, strong organizational skills",
+        "link": "https://harmonyhealth.example.com/careers"
+    },
+    {
+        "company": "EduPath Learning",
+        "role": "Education Technology Intern",
+        "location": "Remote",
+        "branch": "Education",
+        "prerequisites": "Interest in education, familiarity with digital tools",
+        "link": "https://edupathlearning.example.com/internships"
+    },
+    {
+        "company": "Apex Engineering",
+        "role": "Mechanical Engineering Intern",
+        "location": "Detroit, MI",
+        "branch": "Engineering",
+        "prerequisites": "Physics and math coursework, interest in engineering",
+        "link": "https://apexengineering.example.com/internships"
     }
 ]
