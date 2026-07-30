@@ -34,3 +34,4 @@ def root():
 app.include_router(routers.activities.router)
 app.include_router(routers.auth.router)
 app.include_router(routers.internships.router)
+app.include_router(routers.tasks.router)
