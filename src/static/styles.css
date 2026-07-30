@@ -141,7 +141,8 @@ section h3 {
   }
 }
 
-#activities-list {
+#activities-list,
+#internships-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 15px;
@@ -476,6 +477,122 @@ footer {
   font-size: 0.8rem;
 }
 
+/* Page navigation bar */
+.page-nav {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background-color: var(--surface);
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-size: 0.85rem;
+}
+
+.page-nav a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.page-nav a:hover {
+  text-decoration: underline;
+}
+
+/* Internship cards */
+.internship-card {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background-color: var(--surface);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+  font-size: 0.85rem;
+}
+
+.internship-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  border-color: var(--border-focus);
+}
+
+.internship-card h4 {
+  margin-bottom: 8px;
+  color: var(--primary);
+  font-size: 1rem;
+  letter-spacing: 0.3px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-light);
+  padding-right: 60px;
+}
+
+.internship-role {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.internship-location {
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.internship-prereqs {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.internship-branch-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.65rem;
+  font-weight: bold;
+  padding: 2px 6px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.internship-link-button {
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+/* Branch filter buttons */
+.branch-filter {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.branch-filter.active {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary-dark);
+}
+
+.branch-filter:hover {
+  background-color: var(--primary-light);
+  color: white;
+}
+
+.branch-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 /* Search and Filter Components - Updated for Sidebar */
 .search-box {
   display: flex;
@@ -603,7 +720,8 @@ footer {
     flex-direction: column;
   }
 
-  #activities-list {
+  #activities-list,
+  #internships-list {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   }
 
