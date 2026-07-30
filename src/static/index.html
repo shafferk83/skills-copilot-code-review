@@ -12,6 +12,9 @@
     />
   </head>
   <body>
+    <div class="announcement-banner">
+      📢 Activity registration is open until the end of the month. Don't lose your spot!
+    </div>
     <header>
       <h1>Mergington High School</h1>
       <h2>Extracurricular Activities</h2>
@@ -30,6 +33,13 @@
     </header>
 
     <main>
+      <!-- View Toggle Tabs -->
+      <div class="view-tabs">
+        <button class="view-tab active" id="tab-activities" data-view="activities">📋 Activities</button>
+        <button class="view-tab" id="tab-timetable" data-view="timetable">📅 Timetable</button>
+      </div>
+
+      <!-- Activities View -->
       <section id="activities-container">
         <div class="main-content-layout">
           <!-- Left Sidebar for Filters -->
@@ -114,6 +124,40 @@
             <!-- Tasks rendered here -->
           </ul>
           <p id="todo-empty" class="hidden todo-empty">No assignments yet. Add one above!</p>
+      <!-- Timetable View -->
+      <section id="timetable-container" class="hidden">
+        <div class="timetable-header">
+          <h3>Weekly Schedule by Branch</h3>
+          <div class="timetable-branch-filter">
+            <label for="branch-select">Branch / Department:</label>
+            <select id="branch-select">
+              <option value="">All Branches</option>
+              <option value="sports">Sports</option>
+              <option value="arts">Arts</option>
+              <option value="academic">Academic</option>
+              <option value="technology">Technology</option>
+              <option value="community">Community</option>
+            </select>
+          </div>
+        </div>
+        <div class="timetable-wrapper">
+          <table class="timetable-table" id="timetable-table">
+            <thead>
+              <tr>
+                <th class="time-col">Time Period</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+                <th>Sunday</th>
+              </tr>
+            </thead>
+            <tbody id="timetable-body">
+              <tr><td colspan="8" class="timetable-loading">Loading timetable...</td></tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </main>
