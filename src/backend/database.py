@@ -10,6 +10,7 @@ client = MongoClient('mongodb://localhost:27017/')
 db = client['mergington_high']
 activities_collection = db['activities']
 teachers_collection = db['teachers']
+students_collection = db['students']
 internships_collection = db['internships']
 tasks_collection = db['tasks']
 
@@ -52,6 +53,11 @@ def init_database():
             teachers_collection.insert_one(
                 {"_id": teacher["username"], **teacher})
 
+    # Initialize student accounts if empty
+    if students_collection.count_documents({}) == 0:
+        for student in initial_students:
+            students_collection.insert_one(
+                {"_id": student["email"], **student})
     # Initialize internships if empty
     if internships_collection.count_documents({}) == 0:
         for internship in initial_internships:
@@ -215,6 +221,54 @@ initial_teachers = [
     }
 ]
 
+initial_students = [
+    {
+        "email": "emma@mergington.edu",
+        "name": "Emma Johnson",
+        "grade": "10",
+        "branch": "Science"
+    },
+    {
+        "email": "michael@mergington.edu",
+        "name": "Michael Smith",
+        "grade": "11",
+        "branch": "Mathematics"
+    },
+    {
+        "email": "sophia@mergington.edu",
+        "name": "Sophia Williams",
+        "grade": "10",
+        "branch": "Technology"
+    },
+    {
+        "email": "liam@mergington.edu",
+        "name": "Liam Brown",
+        "grade": "12",
+        "branch": "Arts"
+    },
+    {
+        "email": "olivia@mergington.edu",
+        "name": "Olivia Davis",
+        "grade": "9",
+        "branch": "Commerce"
+    },
+    {
+        "email": "noah@mergington.edu",
+        "name": "Noah Wilson",
+        "grade": "11",
+        "branch": "Science"
+    },
+    {
+        "email": "ava@mergington.edu",
+        "name": "Ava Martinez",
+        "grade": "10",
+        "branch": "Arts"
+    },
+    {
+        "email": "james@mergington.edu",
+        "name": "James Anderson",
+        "grade": "12",
+        "branch": "Mathematics"
 initial_internships = [
     {
         "company": "TechNova Solutions",
