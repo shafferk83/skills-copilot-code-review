@@ -66,6 +66,70 @@ def get_available_days() -> List[str]:
     return days
 
 
+@router.get("/timetable", response_model=Dict[str, Any])
+def get_timetable(branch: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Get activities organized by day for timetable view.
+
+    - branch: Filter activities by branch/department (sports, arts, academic, technology, community)
+
+    Returns a dict with each day of the week mapped to a list of activities scheduled on that day,
+    sorted by start time.
+    """
+    days_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    timetable: Dict[str, List[Any]] = {day: [] for day in days_order}
+
+    # Branch-to-keyword mapping for server-side filtering
+    branch_keywords: Dict[str, Dict[str, List[str]]] = {
+        "sports": {
+            "name": ["soccer", "basketball", "sport", "fitness"],
+            "desc": ["team", "game", "athletic"]
+        },
+        "arts": {
+            "name": ["art", "music", "theater", "drama"],
+            "desc": ["creative", "paint"]
+        },
+        "academic": {
+            "name": ["science", "math", "academic", "study", "olympiad", "debate", "chess"],
+            "desc": ["learning", "education", "competition"]
+        },
+        "technology": {
+            "name": ["computer", "coding", "tech", "robotics", "programming"],
+            "desc": ["programming", "technology", "digital", "robot"]
+        },
+        "community": {
+            "name": ["volunteer", "community"],
+            "desc": ["service", "volunteer"]
+        }
+    }
+
+    for activity in activities_collection.find({}):
+        name = activity.pop('_id')
+        activity_name_lower = name.lower()
+        activity_desc_lower = activity.get("description", "").lower()
+
+        # Apply branch filter when provided
+        if branch and branch in branch_keywords:
+            keywords = branch_keywords[branch]
+            name_match = any(kw in activity_name_lower for kw in keywords["name"])
+            desc_match = any(kw in activity_desc_lower for kw in keywords["desc"])
+            if not name_match and not desc_match:
+                continue
+
+        schedule_days = activity.get("schedule_details", {}).get("days", [])
+        for day in schedule_days:
+            if day in timetable:
+                timetable[day].append({"name": name, **activity})
+
+    # Sort activities within each day by start time
+    for day in timetable:
+        timetable[day].sort(
+            key=lambda x: x.get("schedule_details", {}).get("start_time", "")
+        )
+
+    return timetable
+
+
 @router.post("/{activity_name}/signup")
 def signup_for_activity(activity_name: str, email: str, teacher_username: Optional[str] = Query(None)):
     """Sign up a student for an activity - requires teacher authentication"""

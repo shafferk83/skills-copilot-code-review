@@ -861,6 +861,168 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeRangeFilter,
   };
 
+  // ─── Timetable View ────────────────────────────────────────────────────────
+
+  const timetableContainer = document.getElementById("timetable-container");
+  const activitiesContainer = document.getElementById("activities-container");
+  const viewTabs = document.querySelectorAll(".view-tab");
+  const branchSelect = document.getElementById("branch-select");
+  const timetableBody = document.getElementById("timetable-body");
+
+  // Time bands used to group activities into rows
+  const TIME_BANDS = [
+    { key: "before-school", label: "Before School", range: "6:00 AM – 9:00 AM", maxEnd: "09:00" },
+    { key: "after-school",  label: "After School",  range: "3:00 PM – 6:30 PM", minStart: "14:00" },
+    { key: "weekend",       label: "Weekend",       range: "All Day", days: ["Saturday", "Sunday"] },
+  ];
+
+  const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+  // Determine which time band(s) an activity belongs to
+  function getTimeBandsForActivity(activity) {
+    const schedDays = activity.schedule_details?.days ?? [];
+    const startTime = activity.schedule_details?.start_time ?? "";
+    const endTime   = activity.schedule_details?.end_time   ?? "";
+    const bands = new Set();
+
+    for (const band of TIME_BANDS) {
+      if (band.days) {
+        // Weekend band: activity must be on a weekend day
+        if (schedDays.some((d) => band.days.includes(d))) bands.add(band.key);
+      } else if (band.maxEnd) {
+        // Before-school: ends before 09:00
+        if (endTime && endTime <= band.maxEnd) bands.add(band.key);
+      } else if (band.minStart) {
+        // After-school: starts at 14:00 or later
+        if (startTime && startTime >= band.minStart) bands.add(band.key);
+      }
+    }
+
+    return bands;
+  }
+
+  // Format a 24h "HH:MM" time string to 12h AM/PM
+  function formatTime24to12(time24) {
+    if (!time24) return "";
+    const [h, m] = time24.split(":").map(Number);
+    const period = h >= 12 ? "PM" : "AM";
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+  }
+
+  // Fetch timetable data and render it
+  async function fetchAndRenderTimetable() {
+    timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-loading">Loading timetable…</td></tr>`;
+
+    const branch = branchSelect.value;
+    const query  = branch ? `?branch=${encodeURIComponent(branch)}` : "";
+
+    try {
+      const response = await fetch(`/activities/timetable${query}`);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const timetableData = await response.json();
+      renderTimetable(timetableData);
+    } catch (error) {
+      timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-loading">Failed to load timetable. Please try again.</td></tr>`;
+      console.error("Error fetching timetable:", error);
+    }
+  }
+
+  // Render the timetable table body from the API response
+  function renderTimetable(timetableData) {
+    timetableBody.innerHTML = "";
+
+    let hasAnyActivity = false;
+
+    for (const band of TIME_BANDS) {
+      const row = document.createElement("tr");
+
+      // Time label cell
+      const labelCell = document.createElement("td");
+      labelCell.className = "time-label";
+      labelCell.innerHTML = `${band.label}<span class="time-band">${band.range}</span>`;
+      row.appendChild(labelCell);
+
+      // Day cells
+      for (const day of DAYS) {
+        const cell = document.createElement("td");
+
+        // For weekend band, only Saturday and Sunday are relevant
+        if (band.days && !band.days.includes(day)) {
+          cell.className = "empty-cell";
+          cell.textContent = "–";
+          row.appendChild(cell);
+          continue;
+        }
+
+        const dayActivities = (timetableData[day] ?? []).filter((activity) => {
+          const actBands = getTimeBandsForActivity(activity);
+          return actBands.has(band.key);
+        });
+
+        if (dayActivities.length === 0) {
+          cell.className = "empty-cell";
+          cell.textContent = "–";
+        } else {
+          hasAnyActivity = true;
+          dayActivities.forEach((activity) => {
+            const entry = document.createElement("div");
+            const typeClass = getActivityType(activity.name, activity.description);
+            entry.className = `timetable-entry ${typeClass}`;
+
+            const startStr = formatTime24to12(activity.schedule_details?.start_time);
+            const endStr   = formatTime24to12(activity.schedule_details?.end_time);
+            const timeStr  = startStr && endStr ? `${startStr} – ${endStr}` : "";
+
+            entry.innerHTML = `
+              <span class="timetable-entry-name">${activity.name}</span>
+              ${timeStr ? `<span class="timetable-entry-time">${timeStr}</span>` : ""}
+            `;
+            cell.appendChild(entry);
+          });
+        }
+
+        row.appendChild(cell);
+      }
+
+      timetableBody.appendChild(row);
+    }
+
+    if (!hasAnyActivity) {
+      timetableBody.innerHTML = `<tr><td colspan="8" class="timetable-empty">No activities found for the selected branch.</td></tr>`;
+    }
+  }
+
+  // Switch between Activities and Timetable views
+  function switchView(view) {
+    if (view === "timetable") {
+      activitiesContainer.classList.add("hidden");
+      timetableContainer.classList.remove("hidden");
+      fetchAndRenderTimetable();
+    } else {
+      timetableContainer.classList.add("hidden");
+      activitiesContainer.classList.remove("hidden");
+    }
+
+    viewTabs.forEach((tab) => {
+      if (tab.dataset.view === view) {
+        tab.classList.add("active");
+      } else {
+        tab.classList.remove("active");
+      }
+    });
+  }
+
+  // Event listeners for view tabs
+  viewTabs.forEach((tab) => {
+    tab.addEventListener("click", () => switchView(tab.dataset.view));
+  });
+
+  // Event listener for branch filter
+  branchSelect.addEventListener("change", fetchAndRenderTimetable);
+
+  // ─── End Timetable View ────────────────────────────────────────────────────
+
   // Initialize app
   checkAuthentication();
   initializeFilters();
