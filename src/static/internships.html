@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mergington High School – Internship Directory</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="https://github.githubassets.com/favicons/favicon.svg"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Mergington High School</h1>
+      <h2>Internship Directory</h2>
+    </header>
+
+    <nav class="page-nav">
+      <a href="/static/index.html">← Back to Activities</a>
+    </nav>
+
+    <main>
+      <section id="internships-container">
+        <div class="main-content-layout">
+          <!-- Left Sidebar for Filters -->
+          <aside class="sidebar-filters">
+            <h3>Filter Internships</h3>
+
+            <!-- Search Box -->
+            <div class="search-box">
+              <input type="text" id="internship-search" placeholder="Search internships..." />
+              <button id="search-button" aria-label="Search">
+                <span class="search-icon">🔍</span>
+              </button>
+            </div>
+
+            <!-- Branch Filter -->
+            <div class="filter-container">
+              <div class="filter-label">Filter by branch:</div>
+              <div class="branch-filters" id="branch-filters">
+                <button class="branch-filter active" data-branch="">All Branches</button>
+                <!-- Branch buttons are populated dynamically -->
+              </div>
+            </div>
+          </aside>
+
+          <!-- Internships Content -->
+          <div class="activities-content">
+            <div id="internships-list">
+              <p>Loading internships...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2023 Mergington High School</p>
+    </footer>
+
+    <script src="internships.js"></script>
+  </body>
+</html>
